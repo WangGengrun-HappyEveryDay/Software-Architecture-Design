@@ -1,5 +1,6 @@
 public abstract class Node {
     protected String name;
+    protected DirectoryNode parent;
 
     public Node(String name) {
         this.name = name;
@@ -9,8 +10,23 @@ public abstract class Node {
         return name;
     }
 
-    // 返回节点大小，文件为其内容大小，目录为内部所有节点大小之和
-    public abstract int getSize();
+    public DirectoryNode getParent() {
+        return parent;
+    }
+
+    public void setParent(DirectoryNode parent) {
+        this.parent = parent;
+    }
+
+    public String getPath() {
+        if (parent == null) {
+            return "/";
+        }
+        String parentPath = parent.getPath();
+        return "/".equals(parentPath) ? "/" + name : parentPath + "/" + name;
+    }
+
+    public abstract long getSize();
 
     @Override
     public String toString() {

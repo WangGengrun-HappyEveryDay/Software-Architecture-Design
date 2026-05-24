@@ -1,8 +1,8 @@
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
+import java.util.TreeMap;
 
 public class DirectoryNode extends Node {
-    private List<Node> children = new ArrayList<>();
+    private TreeMap<String, Node> children = new TreeMap<String, Node>();
 
     public DirectoryNode(String name) {
         super(name);
@@ -10,45 +10,43 @@ public class DirectoryNode extends Node {
 
     public void addChild(Node node) {
         if (node == null) throw new IllegalArgumentException("node is null");
-        children.add(node);
+        node.setParent(this);
+        children.put(node.getName(), node);
     }
 
-    // Put child: replace existing child with same name, otherwise add
     public void putChild(Node node) {
         if (node == null) throw new IllegalArgumentException("node is null");
-        for (int i = 0; i < children.size(); i++) {
-            if (children.get(i).getName().equals(node.getName())) {
-                children.set(i, node);
-                return;
-            }
+        Node existing = children.put(node.getName(), node);
+        node.setParent(this);
+        if (existing != null && existing != node) {
+            existing.setParent(null);
         }
-        children.add(node);
     }
 
     public Node getChild(String name) {
-        for (Node n : children) if (n.getName().equals(name)) return n;
-        return null;
+        return children.get(name);
     }
 
-    public List<Node> getChildren() {
-        return new ArrayList<>(children);
+    public Node removeChild(String name) {
+        Node removed = children.remove(name);
+        if (removed != null) {
+            removed.setParent(null);
+        }
+        return removed;
     }
 
     @Override
-    public int getSize() {
-        int sum = 0;
-        for (Node n : children) sum += n.getSize();
+    public long getSize() {
+        long sum = 0L;
+        for (Node n : children.values()) sum += n.getSize();
         return sum;
     }
 
-    public Node find(String name) {
-        for (Node n : children) {
-            if (n.getName().equals(name)) return n;
-            if (n instanceof DirectoryNode) {
-                Node found = ((DirectoryNode) n).find(name);
-                if (found != null) return found;
-            }
-        }
-        return null;
+    public Collection<Node> getChildren() {
+        return children.values();
+    }
+
+    public boolean isEmpty() {
+        return children.isEmpty();
     }
 }

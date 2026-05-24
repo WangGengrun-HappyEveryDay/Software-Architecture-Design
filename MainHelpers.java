@@ -1,45 +1,44 @@
 public class MainHelpers {
+    public static String normalizePath(String path) {
+        if (path == null || !path.startsWith("/")) return null;
+
+        java.util.ArrayDeque<String> stack = new java.util.ArrayDeque<String>();
+        String[] segments = path.split("/");
+        for (String segment : segments) {
+            if (segment.length() == 0 || ".".equals(segment)) {
+                continue;
+            }
+            if ("..".equals(segment)) {
+                if (!stack.isEmpty()) {
+                    stack.removeLast();
+                }
+                continue;
+            }
+            stack.addLast(segment);
+        }
+
+        if (stack.isEmpty()) return "/";
+
+        StringBuilder builder = new StringBuilder();
+        for (String segment : stack) {
+            builder.append('/').append(segment);
+        }
+        return builder.toString();
+    }
+
     public static boolean isValidPath(String path) {
-        if (path == null) return false;
-        if (!path.startsWith("/")) return false;
-        if (path.contains("//")) return false;
-        if (path.length() > 1 && path.endsWith("/")) return false;
-        String[] segs = path.equals("/") ? new String[0] : path.substring(1).split("/");
-        for (String s : segs) {
-            if (s.equals(".") || s.equals("..")) return false;
-            if (s.length() == 0) return false;
-        }
-        return true;
+        return normalizePath(path) != null;
     }
 
-    public static String lastSegment(String path) {
-        if ("/".equals(path)) return "/";
-        int idx = path.lastIndexOf('/');
-        return path.substring(idx+1);
+    public static String parentPath(String normalizedPath) {
+        if (normalizedPath == null || "/".equals(normalizedPath)) return null;
+        int idx = normalizedPath.lastIndexOf('/');
+        return idx <= 0 ? "/" : normalizedPath.substring(0, idx);
     }
 
-    public static Node getNodeByPath(DirectoryNode root, String path) {
-        if (!isValidPath(path)) return null;
-        if ("/".equals(path)) return root;
-        String[] segs = path.substring(1).split("/");
-        Node cur = root;
-        for (String s : segs) {
-            if (!(cur instanceof DirectoryNode)) return null;
-            DirectoryNode dir = (DirectoryNode) cur;
-            Node child = dir.getChild(s);
-            if (child == null) return null;
-            cur = child;
-        }
-        return cur;
-    }
-
-    public static DirectoryNode getParentDir(DirectoryNode root, String path) {
-        if (!isValidPath(path)) return null;
-        if ("/".equals(path)) return null;
-        int idx = path.lastIndexOf('/');
-        String parentPath = (idx == 0) ? "/" : path.substring(0, idx);
-        Node p = getNodeByPath(root, parentPath);
-        if (p instanceof DirectoryNode) return (DirectoryNode) p;
-        return null;
+    public static String lastSegment(String normalizedPath) {
+        if (normalizedPath == null || "/".equals(normalizedPath)) return "/";
+        int idx = normalizedPath.lastIndexOf('/');
+        return normalizedPath.substring(idx + 1);
     }
 }
